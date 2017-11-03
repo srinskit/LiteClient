@@ -1,4 +1,6 @@
 #!/bin/bash
 pid=$(cat process.pid)
 kill -s sigterm $pid
-echo Killed
+if [ $? -eq 0 ]; then
+    echo Killed
+fi
