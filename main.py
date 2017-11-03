@@ -26,8 +26,8 @@ class ProgramController:
         signal.signal(signal.SIGTERM, ProgramController.terminate)
 
     @staticmethod
-    def terminate(one, two):
-        logging.debug('Got')
+    def terminate(*_):
+        logging.debug('Got sigterm')
         ProgramController.run = False
 
 
@@ -53,7 +53,7 @@ class TermClient(WebSocketClient):
             fromServer.put(msg['data']['bs'])
 
     def opened(self):
-        print('Connection Opened!')
+        logging.debug('Connection Opened!')
 
     def after_auth(self):
         self.connected = True
@@ -61,15 +61,15 @@ class TermClient(WebSocketClient):
 
     def closed(self, code, reason=None):
         self.connected = False
-        print('Connection Closed!', code, reason)
+        logging.debug('Connection Closed!', code, reason)
 
     def received_message(self, m):
         json_msg = loads(m.data.decode("utf-8"))
-        print('From srv : ' + str(json_msg))
+        logging.debug('From srv : ' + str(json_msg))
         self.process_msg(json_msg)
 
     def send(self, m, **kwargs):
-        print('To srv : ' + str(m))
+        logging.debug('To srv : %s' % str(m))
         try:
             super().send(m)
         except:
@@ -97,7 +97,7 @@ def socket_manager():
                     break
                 except:
                     retry = retry + 1
-                    print('Socket connection failed. Try : %d' % retry, end='')
+                    logging.warning('Socket connection failed. Try : %d' % retry)
                     del socketDev
                     socketDev = TermClient(serverConfig['ip'], {'username': 'term1', 'CID': CID})
                 sleep(1)
@@ -108,11 +108,12 @@ def socket_manager():
     try:
         socketDev.close()
     except:
-        print('Failed to close socket')
+        logging.error('Failed to close socket')
 
 
 def serial_manager():
     global time_to_read, serialDev
+    logging.debug('Reached')
     while ProgramController.run:
         try:
             serialDev = Serial('/dev/ttyUSB0', 9600, timeout=10)
@@ -122,7 +123,7 @@ def serial_manager():
                         ack = serialDev.read(29)
                         if ack == b'':
                             continue
-                        print('Got from ard : ' + ack.decode("utf-8"))
+                        logging.debug('Got from ard : ' + ack.decode("utf-8"))
                         time_to_read = False
                     else:
                         if not fromServer.empty():
@@ -131,17 +132,18 @@ def serial_manager():
                             fake_it(bs)
                             time_to_read = True
                 except:
-                    print('Failed to send/receive to/from serial dev')
+                    logging.warning('Failed to send/receive to/from serial dev')
                     sleep(1)
                     break
         except:
-            print('Failed to connect to serial dev')
+            logging.warning('Failed to connect to serial dev')
             sleep(1)
         finally:
             if serialDev is not None:
                 serialDev.close()
 
 
+time_to_read = True
 if __name__ == '__main__':
     pc = ProgramController()
     logging.basicConfig(filename='log.log', level=logging.DEBUG)
@@ -151,18 +153,18 @@ if __name__ == '__main__':
         pair = line.split(':', 1)
         serverConfig[pair[0]] = pair[1]
     if serverConfig.get('ip') is None:
-        print('No server')
+        logging.error('No server')
         quit(1)
     time_to_read = True
     try:
-        CID = '1'
-        # CID = str(int(sys.argv[1]))
+        # CID = '1'
+        CID = str(int(sys.argv[1]))
     except (IndexError, ValueError) as e:
-        print('Invalid CID; Exception : ' + str(e))
+        logging.error('Invalid CID; Exception : %s' % str(e))
         quit(1)
     socketThread = threading.Thread(target=socket_manager)
     socketThread.start()
-    serialThread = threading.Thread(target=serialThread)
+    serialThread = threading.Thread(target=serial_manager)
     serialThread.start()
     socketThread.join()
     serialThread.join()
