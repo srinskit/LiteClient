@@ -6,5 +6,6 @@ fi
 if [ "$2" == "up" ]; then
     git pull origin master
 fi
-echo "$$" > process.pid
-python3 main.py "$1"
+nohup python3 main.py "$1" > op &
+echo "$!" > process.pid
+sleep 0.5
