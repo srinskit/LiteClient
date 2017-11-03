@@ -1,4 +1,4 @@
 #!/bin/bash
 pid=$(cat process.pid)
-kill $pid
+kill -s sigterm $pid
 echo Killed
