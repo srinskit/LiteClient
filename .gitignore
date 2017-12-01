@@ -1,4 +1,4 @@
 .idea
-log.log
+*.log
 process.pid
-op
+device_config.json
