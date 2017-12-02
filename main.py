@@ -134,11 +134,11 @@ def socket_manager():
 
 
 def serial_manager():
-    # sleep(5)
     global time_to_read, serialDev
     while ProgramController.run:
         try:
-            serialDev = Serial('/dev/ttyUSB0', 38400, timeout=10)
+            serialDev = Serial('/dev/ttyACM0', 38400, timeout=10)
+            sleep(5)
             while ProgramController.run:
                 try:
                     if time_to_read:
@@ -154,10 +154,10 @@ def serial_manager():
                             serialDev.write(bs.encode('ascii'))
                             fake_it(bs)
                             # time_to_read = True
-                            sleep(1)
+                            sleep(2)
                 except:
                     print_warn('Failed to send/receive to/from serial dev')
-                    sleep(1)
+                    sleep(2)
                     break
         except:
             print_warn('Failed to connect to serial dev')
