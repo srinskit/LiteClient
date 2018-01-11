@@ -1,4 +1,6 @@
+import traceback
 from time import sleep
+import time as time
 from serial import Serial
 from ws4py.client.threadedclient import WebSocketClient
 from json import dumps, loads
@@ -58,8 +60,7 @@ class TermClient(WebSocketClient):
     def __init__(self, path):
         self.connected = False
         self.cred = devConfig
-        path += '?username=' + self.cred['username'] + '&type=terminal' + '&cid=' + self.cred['cid'] + '&password=' + \
-                self.cred['password']
+        path += '?type=terminal&username=%s&password=%s' % (self.cred['username'], self.cred['password'])
         WebSocketClient.__init__(self, path)
 
     @staticmethod
@@ -70,7 +71,11 @@ class TermClient(WebSocketClient):
     def process_msg(self, msg):
         typ = msg['type']
         if typ == 'auth':
-            self.after_auth()
+            if msg['data']['state'] == 'pass':
+                self.after_auth()
+            else:
+                print_error('Socket Auth Failed.')
+                ProgramController.run = False
         elif typ == 'bs':
             fromServer.put(msg['data']['bs'])
 
@@ -86,24 +91,34 @@ class TermClient(WebSocketClient):
         print_debug('Connection Closed!' + str(code) + str(reason))
 
     def received_message(self, m):
-        json_msg = loads(m.data.decode("utf-8"))
-        print_debug('From srv : ' + str(json_msg))
-        self.process_msg(json_msg)
+        try:
+            json_msg = loads(m.data.decode("utf-8"))
+            print_debug('From srv : %s' % str(json_msg))
+            self.process_msg(json_msg)
+        except:
+            print('FOoooooo' + m.data.decode("utf-8"))
 
     def send(self, m, **kwargs):
-        print_debug('To srv : %s' % str(m))
+        print_debug('To   srv : %s' % str(m))
         try:
             super().send(m)
         except:
             pass
 
 
-def fake_it(bs):
-    typ = bs[:5]
-    if typ == '00010':
-        bri = '00'
-        # input('Bri of ' + str(int(bs[5:15], 2)) + ' ')
-        toServer.put(bs[:15] + bri + bs[18:])
+def compress(bs):
+    tmp = ''
+    for i in range(5):
+        tmp += str(chr(int(bs[i * 7:(i + 1) * 7], 2)))
+    return tmp
+
+
+def extract(tmp):
+    bs = ''
+    for i in range(4):
+        bs += format(ord(tmp[i]), '07b')
+    bs += format(ord(tmp[4]), '01b')
+    return bs
 
 
 def socket_manager():
@@ -133,31 +148,48 @@ def socket_manager():
         print_error('Failed to close socket')
 
 
+def simulate(bs):
+    if bs[:5] == '00010':
+        # sleep(5)
+        ret = None
+        if int(bs[5:15], 2) == 1:
+            ret = '000'
+        elif int(bs[5:15], 2) == 2:
+            ret = '000'
+        elif int(bs[5:15], 2) == 3:
+            # sleep(5)
+            ret = '011'
+        # toServer.put(bs[:15] + input('status of lamp ' + str(int(bs[5:15], 2)) + ': ') + bs[18:])
+        toServer.put(bs[:15] + ret + bs[18:])
+
+
 def serial_manager():
     global time_to_read, serialDev
     while ProgramController.run:
         try:
-            serialDev = Serial('/dev/ttyACM0', 38400, timeout=10)
-            sleep(5)
+            serialDev = Serial('/dev/ttyACM0', 38400, timeout=1)
+            sleep(2)
             while ProgramController.run:
                 try:
-                    if time_to_read:
-                        ack = serialDev.read(29)
-                        if ack == b'':
-                            continue
-                        print_debug('Got from ard : ' + ack.decode("utf-8"))
-                        time_to_read = False
-                    else:
-                        if not fromServer.empty():
-                            bs = fromServer.get()
-                            bs = '0' + bs
-                            serialDev.write(bs.encode('ascii'))
-                            fake_it(bs)
-                            # time_to_read = True
-                            sleep(2)
+                    if serialDev.in_waiting:
+                        ascii_ack = serialDev.read(5)
+                        print_debug('Got from ard : ' + ' '.join(([str(ch) for ch in ascii_ack])))
+                        ack = ascii_ack.decode("utf-8")
+                        if len(ack) == 5:
+                            toServer.put(extract(ack))
+                            # time_to_read = False
+                    if not fromServer.empty():
+                        bs = fromServer.get()
+                        # simulate(bs)
+                        bs = compress(bs)
+                        print_debug('Sent to ard : ' + ' '.join(([str(ord(ch)) for ch in bs])))
+                        serialDev.write(bs.encode('ascii'))
+                        sleep(.1)
+                        # time_to_read = True
                 except:
+                    print(traceback.format_exc())
                     print_warn('Failed to send/receive to/from serial dev')
-                    sleep(2)
+                    sleep(1)
                     break
         except:
             print_warn('Failed to connect to serial dev')
@@ -167,7 +199,7 @@ def serial_manager():
                 serialDev.close()
 
 
-time_to_read = True
+# time_to_read = True
 if __name__ == '__main__':
     pc = ProgramController()
     logging.basicConfig(filename='log.log', level=logging.DEBUG)
