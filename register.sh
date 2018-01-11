@@ -7,7 +7,6 @@ read password
 stty echo
 echo ''
 echo -ne 'cid: '; read dev[cid]
-echo -ne 'iid: '; read dev[iid]
 dev[username]="term${dev[cid]}"
 #Todo Generate better password
 dev[password]=$(( ($RANDOM*$RANDOM)%1000000 ))
