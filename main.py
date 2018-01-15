@@ -184,7 +184,7 @@ def serial_manager():
                         bs = compress(bs)
                         print_debug('Sent to ard : ' + ' '.join(([str(ord(ch)) for ch in bs])))
                         serialDev.write(bs.encode('ascii'))
-                        sleep(.1)
+                        sleep(.2)
                         # time_to_read = True
                 except:
                     print(traceback.format_exc())
