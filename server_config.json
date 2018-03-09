@@ -1,4 +1,4 @@
 {
-  "hs_ip": "http://10.100.32.224/",
-  "ss_ip": "ws://10.100.32.224/"
+  "hs_ip": "http://localhost/",
+  "ss_ip": "ws://localhost/"
 }
