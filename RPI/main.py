@@ -1,6 +1,5 @@
 import traceback
 from time import sleep
-import time as time
 from serial import Serial
 from ws4py.client.threadedclient import WebSocketClient
 from json import dumps, loads
@@ -107,19 +106,37 @@ class TermClient(WebSocketClient):
             pass
 
 
-def compress(bs):
+def d_to_h(bs):
     tmp = ''
     for i in range(5):
         tmp += str(chr(int(bs[i * 7:(i + 1) * 7], 2)))
-    return tmp
+    return tmp.encode('ascii')
 
 
-def extract(tmp):
+def h_to_d(tmp):
     bs = ''
     for i in range(4):
-        bs += format(ord(tmp[i]), '07b')
-    bs += format(ord(tmp[4]), '01b')
+        bs += format(tmp[i], '07b')
+    bs += format(tmp[4], '01b')
     return bs
+
+
+def h_to_n(instruction):
+    # Convert instruction in ascii to string of space seperated ascii codes
+    # ABCDE -> '65 66 67 68 69'
+    try:
+        return ' '.join(str(num) for num in instruction)
+    except:
+        return None
+
+
+def n_to_h(instruction):
+    # Convert string of space seperated ascii codes to instruction in ascii 
+    # '65 66 67 68 69' -> ABCDE
+    try:
+        return (''.join([chr(int(num)) for num in instruction.split()])).encode('ascii')
+    except:
+        return None
 
 
 def socket_manager():
@@ -136,7 +153,7 @@ def socket_manager():
                 except:
                     retry = retry + 1
                     if retry == 1:
-                        fromServer.put(compress('11111' + '0' * 24))
+                        fromServer.put(d_to_h('11111' + '0' * 24))
                     print_warn('Socket connection failed. Try : %d' % retry)
                     del socketDev
                     sleep(2)
@@ -169,13 +186,14 @@ def simulate(bs):
 
 
 def match(req, res):
+    # return True
     if req is None or res is None:
-        return True
+        return False
+    req, res = h_to_d(req), h_to_d(res)
     # Make 5th bit of req zero
     req = req[:4] + '0' + req[5:]
-    req, res = extract(req), extract(res)
     # Check id match
-    if req[2:3] != res[2:3]:
+    if req[5:5 + 10] != res[5:5 + 10]:
         return False
     # If status
     req_op, res_op = req[:5], res[:5]
@@ -188,7 +206,7 @@ def match(req, res):
 def serial_manager():
     global serialDev
     print_failure, print_success = True, True
-    resend_count, max_resend = 0, 2
+    resend_count, max_resend = 0, 1
     response_time, timeout, timeout_q = 0, 6, []
     sent_instruction, resend_instruction = None, None
     while ProgramController.run:
@@ -206,22 +224,29 @@ def serial_manager():
                 try:
                     if serialDev.in_waiting >= 5:
                         # If at least 5 bytes are in buffer
-                        raw_response = serialDev.read(5)
-                        print_debug('Got frm ard : ' + ' '.join(([str(ch) for ch in raw_response])))
-                        response = raw_response.decode('utf-8')
-                        op_code = response[0]
+                        resp_instruction = serialDev.read(5)
+                        print_debug('Got frm ard : ' + h_to_n(resp_instruction))
+                        op_code = resp_instruction[0]
                         if op_code == 28 or op_code == 60:
                             # Lone Msg
-                            toServer.put(response)
-                        elif match(sent_instruction, response):
+                            toServer.put(h_to_n(resp_instruction))
+                        elif sent_instruction is None:
+                            continue
+                        elif op_code == 0:
+                            resend_instruction = sent_instruction
+                            sent_instruction = None
+                        elif match(sent_instruction, resp_instruction):
+                            print_debug('Success     : ' + h_to_n(sent_instruction))
                             # It's match!
+                            if op_code == 8:
+                                toServer.put(h_to_n(resp_instruction))
                             sent_instruction = None
                             resend_instruction = None
                             send_count = 0
                         else:
                             # Mismatch or timed-out req's res
                             for req in timeout_q:
-                                if match(req, response):
+                                if match(req, resp_instruction):
                                     # Timed-out req's res
                                     resend_instruction = None
                                     break
@@ -229,30 +254,31 @@ def serial_manager():
                                 # Mismatch
                                 resend_instruction = sent_instruction
                             sent_instruction = None
-                    if sent_instruction is None or not fromServer.empty():
+                    if sent_instruction is None and not fromServer.empty() or response_time >= timeout:
                         if resend_instruction is None:
-                            sent_instruction = ''.join([chr(int(num)) for num in fromServer.get().split()])
-                            serialDev.write(sent_instruction.encode('ascii'))
-                            print_debug('Sent to ard : ' + ' '.join(([str(ord(ch)) for ch in sent_instruction])))
+                            sent_instruction = n_to_h(fromServer.get())
+                            serialDev.write(sent_instruction)
+                            print_debug('Sent to ard : ' + h_to_n(sent_instruction))
                             resend_count = 0
                         elif resend_count < max_resend:
                             sent_instruction = resend_instruction
-                            serialDev.write(sent_instruction.encode('ascii'))
-                            print_debug('Rest to ard : ' + ' '.join(([str(ord(ch)) for ch in sent_instruction])))
+                            serialDev.write(sent_instruction)
+                            print_debug('Rest to ard : ' + h_to_n(sent_instruction))
                             resend_count += 1
                         else:
-                            print_debug('Failed      :' + ' '.join(([str(ord(ch)) for ch in resend_instruction])))
+                            print_debug('Failed      : ' + h_to_n(resend_instruction))
                             if response_time >= timeout and (resend_instruction[0] == 8 or resend_instruction[0] == 12):
                                 # Notify status timed-out
-                                toServer.put(compress("10011" + resend_instruction[5:]))
+                                print('lamp timeout')
+                                toServer.put(h_to_n(d_to_h("10011" + h_to_d(resend_instruction)[5:])))
                             resend_instruction = None
                             sent_instruction = None
                         response_time = 0
-                    else:
+                    elif sent_instruction is not None:
                         response_time += .2
                         sleep(.2)
                         if response_time >= timeout:
-                            timeout_q.append(sent_instruction)
+                            # timeout_q.append(sent_instruction)
                             resend_instruction = sent_instruction
                             sent_instruction = None
                 except:
@@ -271,7 +297,7 @@ def serial_manager():
                 serialDev.close()
 
 
-term1 = False
+term1 = True
 if __name__ == '__main__':
     pc = ProgramController()
     logging.basicConfig(filename='log.log', level=logging.DEBUG)
