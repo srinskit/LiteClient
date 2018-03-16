@@ -206,15 +206,16 @@ def match(req, res):
 def serial_manager():
     global serialDev
     print_failure, print_success = True, True
-    resend_count, max_resend = 0, 1
+    resend_count, max_resend = 0, 0
     response_time, timeout, timeout_q = 0, 6, []
     sent_instruction, resend_instruction = None, None
     while ProgramController.run:
         try:
-            if term1:
-                serialDev = Serial('/dev/ttyACM0', 38400, timeout=2)
-            else:
-                serialDev = Serial('/dev/ttyACM1', 38400, timeout=2)
+            # if term1:
+            #     serialDev = Serial('/dev/ttyACM0', 38400, timeout=2)
+            # else:
+            #     serialDev = Serial('/dev/ttyUSB0', 38400, timeout=2)
+            serialDev = Serial(devConfig['usb_port'], 38400, timeout=2)
             if print_success:
                 print('Connected to serial dev')
                 print_success = False
@@ -303,10 +304,11 @@ if __name__ == '__main__':
     logging.basicConfig(filename='log.log', level=logging.DEBUG)
     print_debug('Start')
     serverConfig = loads(open('server_config.json').read())
-    if term1:
-        devConfig = loads(open('device_config1.json').read())
-    else:
-        devConfig = loads(open('device_config2.json').read())
+    # if term1:
+    #     devConfig = loads(open('device_config1.json').read())
+    # else:
+    #     devConfig = loads(open('device_config2.json').read())
+    devConfig = loads(open('device_config.json').read())
     if serverConfig.get('hs_ip') is None:
         print_error('No server')
         quit(1)
