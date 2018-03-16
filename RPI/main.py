@@ -77,11 +77,11 @@ class TermClient(WebSocketClient):
                 ProgramController.run = False
         elif typ == 'bs':
             fromServer.put(msg['bs'])
-        elif typ =='ping':
-            toServer.put(TermClient.make_msg('ping', None))
+        elif typ == 'ping':
+            print('Hello')
+            self.send(TermClient.make_msg('ping', {}))
         else:
             fromServer.put(msg['bs'])
-
 
     def opened(self):
         print_debug('Connection Opened!')
