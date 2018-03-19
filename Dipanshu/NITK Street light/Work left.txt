@@ -1,0 +1,4 @@
+1)  include RTC syncronise part
+2)  error check part
+3)  fallback mechanism
+4)  send signal both sides
