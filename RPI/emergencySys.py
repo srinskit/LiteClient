@@ -27,7 +27,7 @@ def exe(callback):
             name = ""
             while run:
                 time.sleep(2)
-                imgresp = urlopen(url).read()
+                imgresp = urlopen(url)
                 imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
                 img = cv2.imdecode(imgnp, -1)
                 cv2.imwrite('2.png', img)
