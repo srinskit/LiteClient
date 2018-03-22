@@ -1,12 +1,13 @@
 from pyzbar.pyzbar import decode
 from PIL import Image
-from urllib.request import urlopen
+import urllib3
 import numpy as np
 import cv2
 import time
 import RPi.GPIO as GPIO
 
 run = True
+pool = urllib3.PoolManager()
 
 
 def exe(callback):
@@ -16,8 +17,8 @@ def exe(callback):
     while run:
         try:
             # Extract from IP WEBCAM
-            urlopen('http://10.100.34.109:8080/ptz?zoom=5').read()
-            urlopen('http://10.100.34.109:8080/focus').read()
+            pool.request('GET', 'http://10.100.34.109:8080/ptz?zoom=5')
+            pool.request('GET', 'http://10.100.34.109:8080/focus')
             url = 'http://10.100.34.109:8080/photo.jpg'
             c = ""
             id = ""
@@ -27,7 +28,7 @@ def exe(callback):
             name = ""
             while run:
                 time.sleep(2)
-                imgresp = urlopen(url)
+                imgresp = pool.request('GET', url)
                 imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
                 img = cv2.imdecode(imgnp, -1)
                 cv2.imwrite('2.png', img)

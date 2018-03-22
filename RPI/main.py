@@ -326,7 +326,7 @@ if __name__ == '__main__':
     socketThread.start()
     serialThread = threading.Thread(target=serial_manager)
     serialThread.start()
-    if False and devConfig['ES']:
+    if devConfig['ES'] == "1":
         esThread = threading.Thread(target=foo)
         esThread.start()
         esThread.join()
