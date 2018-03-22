@@ -7,7 +7,8 @@ from multiprocessing import Queue
 import threading
 import signal
 import logging
-import emergencySys as ES
+
+# import emergencySys as ES
 
 fromServer = Queue()
 toServer = Queue()
@@ -52,7 +53,7 @@ class ProgramController:
     def terminate(*_):
         print_debug('Got SIGTERM')
         ProgramController.run = False
-        ES.run = False
+        # ES.run = False
 
 
 class TermClient(WebSocketClient):
@@ -308,7 +309,8 @@ def emergency_callback(id, service):
 
 
 def foo():
-    ES.exe(emergency_callback)
+    # ES.exe(emergency_callback)
+    pass
 
 
 term1 = True
@@ -326,10 +328,10 @@ if __name__ == '__main__':
     socketThread.start()
     serialThread = threading.Thread(target=serial_manager)
     serialThread.start()
-    if devConfig['ES'] == "1":
-        esThread = threading.Thread(target=foo)
-        esThread.start()
-        esThread.join()
+    # if False and devConfig['ES'] == "1":
+    #     esThread = threading.Thread(target=foo)
+    #     esThread.start()
+    #     esThread.join()
     socketThread.join()
     serialThread.join()
     print_debug('End')
