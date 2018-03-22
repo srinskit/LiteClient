@@ -7,6 +7,7 @@ from multiprocessing import Queue
 import threading
 import signal
 import logging
+import emergencySys as ES
 
 fromServer = Queue()
 toServer = Queue()
@@ -299,6 +300,10 @@ def serial_manager():
         finally:
             if serialDev is not None:
                 serialDev.close()
+
+
+def emergency_callback(id, service):
+    socketDev.send(TermClient.make_msg('emergency', {'id': id, 'service': service}))
 
 
 term1 = True
