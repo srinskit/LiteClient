@@ -16,8 +16,8 @@ def exe(callback):
     while run:
         try:
             # Extract from IP WEBCAM
-            urlopen('http://10.100.34.109:8080/ptz?zoom=5')
-            urlopen('http://10.100.34.109:8080/focus')
+            urlopen('http://10.100.34.109:8080/ptz?zoom=5').read()
+            urlopen('http://10.100.34.109:8080/focus').read()
             url = 'http://10.100.34.109:8080/photo.jpg'
             c = ""
             id = ""
@@ -27,7 +27,7 @@ def exe(callback):
             name = ""
             while run:
                 time.sleep(2)
-                imgresp = urlopen(url)
+                imgresp = urlopen(url).read()
                 imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
                 img = cv2.imdecode(imgnp, -1)
                 cv2.imwrite('2.png', img)
