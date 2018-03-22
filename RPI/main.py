@@ -52,6 +52,7 @@ class ProgramController:
     def terminate(*_):
         print_debug('Got SIGTERM')
         ProgramController.run = False
+        ES.run = False
 
 
 class TermClient(WebSocketClient):
