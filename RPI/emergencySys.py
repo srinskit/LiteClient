@@ -11,7 +11,7 @@ run = True
 
 def exe(callback):
     global run
-
+    GPIO.setwarnings(False)
     print('Starting emergency service')
     while run:
         try:
@@ -62,15 +62,15 @@ def exe(callback):
 
             while run:
                 GPIO.setmode(GPIO.BCM)
-                GPIO.setup(10, GPIO.OUT)
-                GPIO.output(10, GPIO.HIGH)
-                GPIO.setup(8, GPIO.IN, GPIO.PUD_DOWN)
-                GPIO.setup(9, GPIO.IN, GPIO.PUD_DOWN)
-                if GPIO.input(8) == 0:
+                GPIO.setup(12, GPIO.OUT)
+                GPIO.output(12, GPIO.HIGH)
+                GPIO.setup(10, GPIO.IN, GPIO.PUD_DOWN)
+                GPIO.setup(11, GPIO.IN, GPIO.PUD_DOWN)
+                if GPIO.input(10) == 0:
                     msg = "POLICE"
                     callback(id, msg)
                     break
-                elif GPIO.input(9) == 0:
+                elif GPIO.input(10) == 0:
                     msg = "AMBULANCE"
                     callback(id, msg)
                     break
