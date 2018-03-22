@@ -7,7 +7,7 @@ from multiprocessing import Queue
 import threading
 import signal
 import logging
-import emergencySys as ES
+import RPI.emergencySys as ES
 
 fromServer = Queue()
 toServer = Queue()
@@ -306,16 +306,16 @@ def emergency_callback(id, service):
     socketDev.send(TermClient.make_msg('emergency', {'id': id, 'service': service}))
 
 
+def foo():
+    ES.exe(emergency_callback)
+
+
 term1 = True
 if __name__ == '__main__':
     pc = ProgramController()
     logging.basicConfig(filename='log.log', level=logging.DEBUG)
     print_debug('Start')
     serverConfig = loads(open('server_config.json').read())
-    # if term1:
-    #     devConfig = loads(open('device_config1.json').read())
-    # else:
-    #     devConfig = loads(open('device_config2.json').read())
     devConfig = loads(open('device_config.json').read())
     if serverConfig.get('hs_ip') is None:
         print_error('No server')
@@ -325,6 +325,9 @@ if __name__ == '__main__':
     socketThread.start()
     serialThread = threading.Thread(target=serial_manager)
     serialThread.start()
+    if devConfig['ES']:
+        esThread = threading.Thread(target=foo)
+        esThread.join()
     socketThread.join()
     serialThread.join()
     print_debug('End')

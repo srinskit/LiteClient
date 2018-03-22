@@ -7,12 +7,12 @@ read password
 stty echo
 echo ''
 echo -ne 'cid: '; read dev[cid]
+echo -ne 'ES support: '; read dev[ES]
 dev[usb_port]="/dev/ttyACM0"
 dev[username]="term${dev[cid]}"
 #Todo Generate better password
 dev[password]=$(( ($RANDOM*$RANDOM)%1000000 ))
 dev[macs]=`ifconfig -a | sed 's/.*HWaddr \([^ ]*\).*/\1/p' -n | tr '\n' ',' | head -c -1`
-
 buff='{'
 for key in "${!dev[@]}"; do
     buff="$buff\"$key\":\"${dev[$key]}\","
