@@ -11,6 +11,7 @@ run = True
 
 def exe(callback):
     global run
+
     print('Starting emergency service')
     while run:
         # Extract from IP WEBCAM
@@ -29,7 +30,7 @@ def exe(callback):
             imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
             img = cv2.imdecode(imgnp, -1)
             cv2.imwrite('2.png', img)
-            cv2.imshow('1', img)
+            # cv2.imshow('1', img)
 
             # Decoding the Aadhar Qr code
 
