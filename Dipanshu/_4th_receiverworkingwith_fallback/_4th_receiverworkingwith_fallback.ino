@@ -4,29 +4,43 @@
 #include<Wire.h>
 #include<RealTimeClockDS1307.h>
 
-#define ter 1
-#define nrfnext 4
-#define nrfprev 2
-#define nrfself 3
+#define ter 4
+#define nrfself 6
+#define nrfnext 7
+#define nrfnextnext 8
+#define nrfprev 5
+#define nrfprevprev 4
+#define nrflastsec 0
+#define nrflast 1
+
 
 RH_NRF24 driver;
 
 RHReliableDatagram manager(driver, nrfself);
 
-char data[5];
+char data[RH_NRF24_MAX_MESSAGE_LEN];
 int o,s,b,stat,error,onoff,i,hour,minute,addr,high,optval=0;
-int msg[29];
+int msg[29],kmsg[29];
 int bright[2];
 int flag=1;
+int flagm=0;
+int count,cntfb=0;
+int fbflag1=0;
+int fbflag2=0;
+int cntfallback_0=0;
 int hr[5]={0,0,0,0,0};
 int mn[6]={0,0,0,0,0,0};
 int inaddr[10]={0,0,0,0,0,0,0,0,0,0};
 int msg1[29]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-int *p,*q;
+char data1[5]="00000";
+int *omsg;
+int *omsg1;
+char *inm;
+char *inm1;
 
 void setup() 
 {
-  Serial.begin(9600);
+  Serial.begin(38400);
   pinMode(3,OUTPUT);
   if (!manager.init())
     Serial.println("init failed");
@@ -48,152 +62,14 @@ int btod(int m[],int n)
 
 
 
-
-
-
-void processdata(int msg[])
+char *encrypt(int *msg1)
 {
-  char data1[5]="00000";
+  
   int m1[7],m2[7],m3[7],m4[7],m5[7]={0,0,0,0,0,0,0};
   int finalmsg[35]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   int initmsg[35]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
   int randkey=0;
-  
-  o=msg[0];
-  s=msg[1];
-  b=msg[2];
-  stat=msg[3];
-  error=msg[4];
-  
-  for(i=0;i<=9;i++)
-    inaddr[i]=msg[i+5];
-  
-  onoff=msg[15];
-  addr=btod(inaddr,10);
-  bright[0]=msg[16];
-  bright[1]=msg[17];
-    
-  if(o==1)
-  {
-     
-     if(addr==nrfself)
-      {
-            if(bright[0]==0 && bright[1]==0)
-              {analogWrite(3,0);flag=1;}
-            if(bright[0]==0 && bright[1]==1)
-              {analogWrite(3,15);flag=2;}
-            if(bright[0]==1 && bright[1]==0)
-              {analogWrite(3,80);flag=3;}
-            if(bright[0]==1 && bright[1]==1)
-              {analogWrite(3,255);flag=4;}
-      }
-  }
 
-  if(s==1)
-  {
-    for(i=0;i<=4;i++)
-      hr[i]=msg[i+18];
-    for(i=0;i<=5;i++)
-      mn[i]=msg[i+23];      
-        
-    hour=btod(hr,5);
-    minute=btod(mn,6);
-    if(hour>23 || minute>60)
-      Serial.println("Time of invalid format");
-    else
-    {
-      RTC.setHours(hour);
-      RTC.setMinutes(minute);
-      RTC.setClock();
-      RTC.readClock();
-      Serial.print(RTC.getHours());
-      Serial.print(":");
-      Serial.print(RTC.getMinutes());
-      Serial.println(" ");
-    }
-  }
-
-  if(b==1)
-  {
-    
-    if(bright[0]==0 && bright[1]==0)
-      {analogWrite(3,0);flag=1;}
-    if(bright[0]==0 && bright[1]==1)
-      {analogWrite(3,15);flag=2;}
-    if(bright[0]==1 && bright[1]==0)
-      {analogWrite(3,80);flag=3;}
-    if(bright[0]==1 && bright[1]==1)
-      {analogWrite(3,255);flag=4;}  
-  }
-
-  if(stat==1)
-  {
-        
-    if(addr==nrfself)
-    {
-      msg1[0]=0;
-      msg1[1]=0;
-      msg1[2]=0;
-      msg1[3]=1;
-      msg1[4]=0;
-      for(i=5;i<=14;i++)
-        msg1[i]=msg[i];
-      
-      msg1[15]=0;
-
-//      high=0;
-//      for(i=0;i<20;i++)
-//      {
-//        optval=analogRead(A0);
-//        if (optval >= 900)
-//            high++;
-//      }
-//      if(high == 0)
-//        {
-//          msg1[16]=0;
-//          msg1[17]=0;
-//        }
-//      if (high >= 1 && high <= 4)
-//        {
-//          msg1[16]=0;
-//          msg1[17]=1;
-//        }
-//      if (high >=5 && high <=19)
-//        {
-//          msg1[16]=1;
-//          msg1[17]=0;
-//        }
-//      if (high ==20)
-//        {
-//          msg1[16]=1;
-//          msg1[17]=1;
-//        }
-      
-      if(flag==1)
-        {
-          msg1[16]=0;
-          msg1[17]=0;
-        }
-      if(flag==2)
-        {
-          msg1[16]=0;
-          msg1[17]=1;
-        }
-      if(flag==3)
-        {
-          msg1[16]=1;
-          msg1[17]=0;
-        }
-      if(flag==4)
-        {
-          msg1[16]=1;
-          msg1[17]=1;
-        }
-      for(i=18;i<=28;i++)
-        msg1[i]=msg[i];
-
-      
-  
   
   for(i=3;i<32;i++)
     initmsg[i]=msg1[i-3];
@@ -365,7 +241,6 @@ void processdata(int msg[])
           finalmsg[34]=initmsg[34];
           break;
   }
-  
       for(i=0;i<7;i++)
         {
           m1[i]=finalmsg[i];
@@ -374,36 +249,29 @@ void processdata(int msg[])
           m4[i]=finalmsg[i+21];
           m5[i]=finalmsg[i+28];
         }
+        
       int i1=btod(m1,7);
       int i2=btod(m2,7);
       int i3=btod(m3,7);
       int i4=btod(m4,7);
       int i5=btod(m5,7);
-
+      
       data1[0]=(char)i1;
       data1[1]=(char)i2;
       data1[2]=(char)i3;
       data1[3]=(char)i4;
       data1[4]=(char)i5;
+//      for(i=0;i<5;i++)
+//Serial.print(data1[i]);
+Serial.print("");
+//delay(10);
+      return data1;
       
-      if (manager.sendtoWait(data1, sizeof(data1), nrfprev))
-        {}
-      data1[5]="00000";
-    }
-  }
 }
 
-void loop() {
-
-  if(manager.available())
-  {
-    char data1[5]="00000";
-    uint8_t len = sizeof(data);
-    uint8_t from;
-    if (manager.recvfromAck(data, &len,&from))
-    {
-      
-      int i1=(int)data[0];
+int *decrypt(char *data)
+{
+  int i1=(int)data[0];
   int i2=(int)data[1];
   int i3=(int)data[2];
   int i4=(int)data[3];
@@ -662,41 +530,334 @@ void loop() {
   }
   if(fm[1]!=1 || fm[2]!=0 || fm[32]!=1 || fm[33]!=1)
   {
-//    for(i=0;i<29;i++)
-//      msg[i]=0;
-for(i=0;i<35;i++)
-  Serial.print(fm[i]);
-  Serial.println(" ");
+    for(i=0;i<29;i++)
+      msg[i]=0;
     Serial.println("Unknown sender");
   }
-//  else
+  else
   {
     for(i=0;i<29;i++)
       msg[i]=fm[i+3];
   }
+  return msg;
+}
 
-      for(i=0;i<29;i++)
-      Serial.print(msg[i]); 
-      Serial.println(); 
-      o=msg[0];
-      s=msg[1];
-      b=msg[2];
-      stat=msg[3];
-      error=msg[4];
-      if(o==1 || s==1 || b==1 || stat==1 && from==nrfprev)
+
+
+void fallback()
+{
+  if ((RTC.getHours()>17) && (RTC.getHours()<24))
+  {
+      digitalWrite(3 , HIGH);
+      flag=4;
+    if ((flagm == 1) && (count == 0))
+    {
+      flagm = 0;
+      count = 1;
+    }
+    else if ((flagm == 0) && (count == 0))
+    {
+      flagm = 1;          
+      count = 1;
+    
+    }
+  } 
+  if ((RTC.getHours()>=0) && (RTC.getHours()<7))                                  //fallback
+  {
+    count = 0;
+    if (flagm == 1)
+      {digitalWrite(3 , HIGH);flag=4;}
+    else
+      {digitalWrite(3 , LOW);flag=1;}   
+  }
+  
+  if ((RTC.getHours()>=7) && (RTC.getHours()<=17)) 
+  {
+    if ((flagm == 1) && (count == 0))
+    {
+      flagm = 0;
+      count = 1;
+    }
+    else if ((flagm == 0) && (count == 0))
+    {
+      flagm = 1;          
+      count = 1;
+    }
+    digitalWrite(3 , LOW);
+    flag=1;
+  }
+}
+
+
+
+
+void processdata(int msg[])
+{
+  o=msg[0];
+  s=msg[1];
+  b=msg[2];
+  stat=msg[3];
+  error=msg[4];
+  
+  for(i=0;i<=9;i++)
+    inaddr[i]=msg[i+5];
+  
+  onoff=msg[15];
+  addr=btod(inaddr,10);
+  bright[0]=msg[16];
+  bright[1]=msg[17];
+    
+  if(o==1)
+  {
+     
+     if(addr==nrfself)
       {
-        processdata(msg);
-        if (manager.sendtoWait(data, sizeof(data), nrfnext))
-          {}        
+            if(bright[0]==0 && bright[1]==0)
+              {analogWrite(3,0);flag=1;}
+            if(bright[0]==0 && bright[1]==1)
+              {analogWrite(3,15);flag=2;}
+            if(bright[0]==1 && bright[1]==0)
+              {analogWrite(3,80);flag=3;}
+            if(bright[0]==1 && bright[1]==1)
+              {analogWrite(3,255);flag=4;}
       }
+  }
 
-      else
+  if(s==1)
+  {
+    for(i=0;i<=4;i++)
+      hr[i]=msg[i+18];
+    for(i=0;i<=5;i++)
+      mn[i]=msg[i+23];      
+        
+    hour=btod(hr,5);
+    minute=btod(mn,6);
+    if(hour>23 || minute>60)
+      Serial.println("Time of invalid format");
+    else
+    {
+      RTC.setHours(hour);
+      RTC.setMinutes(minute);
+      RTC.setClock();
+      RTC.readClock();
+      Serial.print(RTC.getHours());
+      Serial.print(":");
+      Serial.print(RTC.getMinutes());
+      Serial.println(" ");
+    }
+  }
+
+  if(b==1)
+  {
+    
+    if(bright[0]==0 && bright[1]==0)
+      {analogWrite(3,0);flag=1;}
+    if(bright[0]==0 && bright[1]==1)
+      {analogWrite(3,15);flag=2;}
+    if(bright[0]==1 && bright[1]==0)
+      {analogWrite(3,80);flag=3;}
+    if(bright[0]==1 && bright[1]==1)
+      {analogWrite(3,255);flag=4;}  
+  }
+
+  if(stat==1)
+  {
+        
+    if(addr==nrfself)
+    {
+      msg1[0]=0;
+      msg1[1]=0;
+      msg1[2]=0;
+      msg1[3]=1;
+      for(i=4;i<=14;i++)
+        msg1[i]=msg[i];
+      
+      msg1[15]=0;
+
+      high=0;
+      for(i=0;i<40;i++)
       {
-        if (manager.sendtoWait(data, sizeof(data), nrfprev))
-          {}
+        optval=analogRead(A0);
+//        Serial.println(optval);
+        if (optval >= 700)
+            high++;
+      }
+      if(high == 0)
+        {
+          msg1[16]=0;
+          msg1[17]=0;
+        }
+      if (high >= 1 && high <= 4)
+        {
+          msg1[16]=0;
+          msg1[17]=1;
+        }
+      if (high >=5 && high <=19)
+        {
+          msg1[16]=1;
+          msg1[17]=0;
+        }
+      if (high ==40)
+        {
+          msg1[16]=1;
+          msg1[17]=1;
+        }
+      
+      for(i=18;i<=28;i++)
+        msg1[i]=msg[i];
+
+      inm=encrypt(msg1);
+      for(i=0;i<5;i++)
+        data[i]=inm[i];
+      if (manager.sendtoWait(data, sizeof(data), nrfprev))
+        {}
+      else
+      if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
+        {}
+    }
+  }
+  if ((RTC.getHours() >= 0) && (RTC.getHours() <= 1))
+  {
+    if ((flag == 2) || (flag == 3) || (flag == 4))
+      flagm = 1;
+    else if (flag == 1)
+      flagm = 0;
+  }
+}
+
+void loop() {
+  if(fbflag2 == 1)
+  {
+    fallback();
+    Serial.println("Go to fallback");
+  }
+  
+  if (driver.statusRead()==0 && fbflag1 == 0)
+    cntfallback_0+=1;
+  if ((driver.statusRead()!=14 && driver.statusRead()!=64 && driver.statusRead()!=0 && driver.statusRead()!=78&&driver.statusRead()!=110&& driver.statusRead()!=96&& driver.statusRead()!=32&& driver.statusRead()!=46) || (cntfallback_0>=5 && driver.statusRead()!=14 && driver.statusRead()!=64 && driver.statusRead()!=78&& driver.statusRead()!=96&& driver.statusRead()!=32 && driver.statusRead()!=46&&driver.statusRead()!=110))
+  {
+    if (fbflag1==0)
+      cntfb++;
+    if (cntfb>=10)
+    {
+      Serial.print("Go to fallback : ");
+      Serial.println(driver.statusRead());
+      fbflag1 = 1;
+      fallback();
+    }
+  }
+  else
+  {
+    if (fbflag1 == 1)
+    if (manager.init())
+      {}
+    fbflag1 = 0;
+    cntfb = 0;
+    if (driver.statusRead()!=0)
+    cntfallback_0=0;
+    
+    char data1[5]="00000";
+    if(manager.available())
+    {
+      uint8_t len = sizeof(data);
+      uint8_t from;
+      if (manager.recvfromAck(data, &len,&from))
+      {
+            
+            omsg=decrypt(data);
+            for(i=0;i<29;i++)
+            Serial.print(omsg[i]); 
+            Serial.println(); 
+            o=omsg[0];
+            s=omsg[1];
+            b=omsg[2];
+            stat=omsg[3];
+            error=omsg[4];
+            for (i = 0; i <= 9; i++)
+              inaddr[i] = omsg[i + 5];
+            addr = btod(inaddr, 10);            
+            
+            if((o==1 || s==1 || b==1 || stat==1 || error==1) && (from==nrfprev || from==nrfprevprev))
+            {
+                  if (o ==1 && s == 1 && b == 1 && stat == 1 && error == 1)
+                  {
+                    fallback();
+                    fbflag2 = 1;
+                    Serial.println("Go to Fallback");
+                  }
+                  else
+                  {
+                    processdata(omsg);
+                    fbflag2 = 0;
+                  }
+                  
+                   if (addr!=nrfself)
+                   {
+                     if (nrflast == 0)
+                     {
+                         if (manager.sendtoWait(data, sizeof(data), nrfnext))
+                          {}
+                         else              
+                         if (addr!=nrfnext) 
+                         {
+                            if(nrflastsec == 0)   
+                              if (manager.sendtoWait(data, sizeof(data), nrfnextnext))
+                                {}
+                            if ((s==1 || b==1) && nrflastsec == 1)
+                            {
+                              if (manager.sendtoWait(data, sizeof(data), nrfprev))
+                                {}
+                              else
+                              if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
+                                {}                              
+                            }
+                         }
+                      }
+                      else 
+                      {
+                        if ((s==1 || b==1) && error==0)
+                        {
+                          if (manager.sendtoWait(data, sizeof(data), nrfprev))
+                            {}
+                          else 
+                          if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
+                            {}                              
+                        }
+                        if (error == 1)
+                        {
+                          for(i=0;i<29;i++)
+                            kmsg[i]=msg[i];
+                          kmsg[4]=0;  
+                          inm1=encrypt(kmsg);
+                          for(i=0;i<5;i++)
+                            data[i]=inm1[i];
+                          if (manager.sendtoWait(data, sizeof(data), nrfnext))
+                            {} 
+                          else if (manager.sendtoWait(data, sizeof(data), nrfnextnext))
+                                {}
+                        }
+                      }    
+                   }
+                   else if(stat!=1)
+                   {
+                      if (manager.sendtoWait(data, sizeof(data), nrfprev))
+                        {}
+                      else 
+                      if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
+                        {}
+                   }     
+       
+            }
+      
+            else
+            {
+              if (manager.sendtoWait(data, sizeof(data), nrfprev))
+                {}
+              else
+              if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
+                {}
+            }
       }
     }
-    data[5]="00000";
   }
-  data[5]="00000";
 }

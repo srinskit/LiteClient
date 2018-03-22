@@ -4,11 +4,11 @@
 #include<Wire.h>
 #include<RealTimeClockDS1307.h>                            //header
 
-#define ter 3
-#define nrfnext 4
-#define nrfnextnext 5
-#define nrfself 3
-#define nrfprev 2
+#define ter 1
+#define nrfnext 2
+#define nrfnextnext 3
+#define nrfself 1
+#define nrfprev 1
 #define nrfprevprev 1
 
 
@@ -48,7 +48,11 @@ void setup() {
   Serial.begin(38400);
   pinMode(3, OUTPUT);                                   //setup
   if (!manager.init())
-    Serial.println("init failed");
+  {
+    Serial.print(char(28));
+        for (i=0;i<4;i++)
+        Serial.print(char(0));
+  }
   // put your setup code here, to run once:
 
 }
