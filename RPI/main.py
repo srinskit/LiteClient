@@ -7,7 +7,7 @@ from multiprocessing import Queue
 import threading
 import signal
 import logging
-import RPI.emergencySys as ES
+import emergencySys as ES
 
 fromServer = Queue()
 toServer = Queue()
