@@ -70,11 +70,12 @@ def exe(callback):
                     msg = "POLICE"
                     callback(id, msg)
                     break
-                elif GPIO.input(10) == 0:
+                elif GPIO.input(11) == 0:
                     msg = "AMBULANCE"
                     callback(id, msg)
                     break
-                time.sleep(.1)
+                time.sleep(0)
+            print(msg)
         except:
             pass
     print('Ending emergency service')
