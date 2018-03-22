@@ -14,9 +14,9 @@ def exe(callback):
     print('Starting emergency service')
     while run:
         # Extract from IP WEBCAM
-        urllib.urlopen('http://10.50.18.209:8080/ptz?zoom=5')
-        urllib.urlopen('http://10.50.18.209:8080/focus')
-        url = 'http://10.50.18.209:8080/photo.jpg'
+        urllib.urlopen('http://10.100.34.109:8080/ptz?zoom=5')
+        urllib.urlopen('http://10.100.34.109:8080/focus')
+        url = 'http://10.100.34.109:8080/photo.jpg'
         c = ""
         id = ""
         p = 0
