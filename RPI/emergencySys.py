@@ -1,6 +1,6 @@
 from pyzbar.pyzbar import decode
 from PIL import Image
-from urllib import urlopen
+from urllib.request import urlopen
 import numpy as np
 import cv2
 import time
