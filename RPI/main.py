@@ -213,7 +213,7 @@ def serial_manager():
     global serialDev
     print_failure, print_success = True, True
     resend_count, max_resend = 0, 0
-    response_time, timeout, timeout_q = 0, 6, []
+    response_time, timeout, timeout_q = 0, 30, []
     sent_instruction, resend_instruction = None, None
     while ProgramController.run:
         try:
