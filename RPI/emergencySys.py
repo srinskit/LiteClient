@@ -16,7 +16,6 @@ def exe(callback):
     while run:
         try:
             # Extract from IP WEBCAM
-            print('Zoom')
             urlopen('http://10.100.35.192:8080/ptz?zoom=5')
             url = 'http://10.100.35.192:8080/photo.jpg'
             c = ""
@@ -27,7 +26,8 @@ def exe(callback):
             name = ""
             while run:
                 # urlopen('http://10.100.35.192:8080/focus')
-                time.sleep(2)
+                time.sleep(5)
+                print('IMG')
                 imgresp = urlopen(url)
                 imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
                 print(len(imgnp) if imgnp is not None else None)
