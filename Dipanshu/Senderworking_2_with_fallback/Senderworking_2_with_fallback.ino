@@ -4,12 +4,12 @@
 #include<Wire.h>
 #include<RealTimeClockDS1307.h>                            //header
 
-#define ter 1
-#define nrfnext 2
-#define nrfnextnext 3
-#define nrfself 1
-#define nrfprev 1
-#define nrfprevprev 1
+#define ter 4
+#define nrfnext 5
+#define nrfnextnext 6
+#define nrfself 4
+#define nrfprev 3
+#define nrfprevprev 2
 
 
 RH_NRF24 driver;
@@ -48,7 +48,11 @@ void setup() {
   Serial.begin(38400);
   pinMode(3, OUTPUT);                                   //setup
   if (!manager.init())
-    Serial.println("init failed");
+  {
+    Serial.print(char(28));
+        for (i=0;i<4;i++)
+        Serial.print(char(0));
+  }
   // put your setup code here, to run once:
 
 }

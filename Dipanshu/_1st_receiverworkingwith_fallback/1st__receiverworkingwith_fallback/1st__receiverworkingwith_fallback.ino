@@ -4,15 +4,14 @@
 #include<Wire.h>
 #include<RealTimeClockDS1307.h>
 
-#define ter 3
-#define nrfself 4
-#define nrfnext 5
-#define nrfnextnext 6
-#define nrfprev 2
+#define ter 1
+#define nrfself 2
+#define nrfnext 3
+#define nrfnextnext 4
+#define nrfprev 1
 #define nrfprevprev 1
-#define nrflastsec 0
-#define nrflast 1
-#define nrfsec 1
+#define nrflastsec 1
+#define nrflast 0
 
 
 RH_NRF24 driver;
@@ -712,7 +711,7 @@ void processdata(int msg[])
         data[i]=inm[i];
       if (manager.sendtoWait(data, sizeof(data), nrfprev))
         {}
-      else if(nrfsec == 0)
+      else
       if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
         {}
     }
@@ -808,7 +807,7 @@ void loop() {
                             {
                               if (manager.sendtoWait(data, sizeof(data), nrfprev))
                                 {}
-                              else if(nrfsec == 0)
+                              else
                               if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
                                 {}                              
                             }
@@ -820,7 +819,7 @@ void loop() {
                         {
                           if (manager.sendtoWait(data, sizeof(data), nrfprev))
                             {}
-                          else if(nrfsec == 0)
+                          else 
                           if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
                             {}                              
                         }
@@ -843,7 +842,7 @@ void loop() {
                    {
                       if (manager.sendtoWait(data, sizeof(data), nrfprev))
                         {}
-                      else if(nrfsec == 0)
+                      else 
                       if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
                         {}
                    }     
@@ -854,7 +853,7 @@ void loop() {
             {
               if (manager.sendtoWait(data, sizeof(data), nrfprev))
                 {}
-              else if(nrfsec == 0)
+              else
               if (manager.sendtoWait(data, sizeof(data), nrfprevprev))
                 {}
             }
