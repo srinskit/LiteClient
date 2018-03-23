@@ -1,13 +1,12 @@
 from pyzbar.pyzbar import decode
 from PIL import Image
-import urllib3
+from urllib.request import urlopen
 import numpy as np
 import cv2
 import time
 import RPi.GPIO as GPIO
 
 run = True
-pool = urllib3.PoolManager()
 
 
 def exe(callback):
@@ -17,9 +16,8 @@ def exe(callback):
     while run:
         try:
             # Extract from IP WEBCAM
-            pool.request('GET', 'http://10.100.34.109:8080/ptz?zoom=5')
-            pool.request('GET', 'http://10.100.34.109:8080/focus')
-            url = 'http://10.100.34.109:8080/photo.jpg'
+            urlopen('http://10.100.35.192:8080/ptz?zoom=5')
+            url = 'http://10.100.35.192:8080/photo.jpg'
             c = ""
             id = ""
             p = 0
@@ -27,20 +25,19 @@ def exe(callback):
             msg = ""
             name = ""
             while run:
+                urlopen('http://10.100.35.192:8080/focus')
                 time.sleep(2)
-                imgresp = pool.request('GET', url)
+                imgresp = urlopen(url)
                 imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
                 img = cv2.imdecode(imgnp, -1)
                 cv2.imwrite('2.png', img)
                 # cv2.imshow('1', img)
-
                 # Decoding the Aadhar Qr code
-
                 image = decode(Image.open('2.png'))
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
                 for x in image:
-                    c = c + x.data
+                    c = c + str(x.data)
                     i = i + 1
                 if i != 0:
                     print("Decoded Aadhar card\n")
