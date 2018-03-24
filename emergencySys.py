@@ -63,7 +63,8 @@ def exe(callback):
                 if i != 0:
                     print("Decoded Aadhar card")
                     break
-
+            else:
+                continue
             if run:
                 o = "uid="
                 f = c.index(o, 0, len(c))
