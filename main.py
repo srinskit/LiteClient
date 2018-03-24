@@ -150,6 +150,7 @@ def socket_manager():
     retry = 0
     socketDev = TermClient(serverConfig['ss_ip'])
     while ProgramController.run:
+        sleep(.1)
         if not socketDev.connected:
             while ProgramController.run:
                 try:

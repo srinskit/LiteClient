@@ -12,21 +12,37 @@ cam_loc = 'http://10.100.35.192:8080'
 
 def exe(callback):
     global run
-    GPIO.setwarnings(False)
     print('Starting emergency service')
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(10, GPIO.IN, GPIO.PUD_DOWN)
+    GPIO.setup(11, GPIO.IN, GPIO.PUD_DOWN)
+    GPIO.setup(12, GPIO.IN, GPIO.PUD_DOWN)
     while run:
         try:
-            # Extract from IP WEBCAM
-            urlopen(cam_loc + '/ptz?zoom=5')
             url = cam_loc + '/photo.jpg'
             c = ""
             id = ""
             p = 0
             i = 0
-            msg = ""
             name = ""
+            msg = ""
             while run:
-                # urlopen(cam_loc + '/focus')
+                if GPIO.input(10) == 0:
+                    msg = "POLICE"
+                    break
+                elif GPIO.input(11) == 0:
+                    msg = "AMBULANCE"
+                    break
+                elif GPIO.input(12) == 0:
+                    msg = "FIRE"
+                    break
+                time.sleep(0)
+
+            urlopen(cam_loc + '/ptz?zoom=5')
+
+            while run:
+                urlopen(cam_loc + '/focus')
                 time.sleep(5)
                 print('Asking IMG')
                 imgresp = urlopen(url)
@@ -35,8 +51,6 @@ def exe(callback):
                 start = time.time()
                 img = cv2.imdecode(imgnp, -1)
                 cv2.imwrite('2.png', img)
-                # cv2.imshow('1', img)
-                # Decoding the Aadhar Qr code
                 image = decode(Image.open('2.png'))
                 print(time.time() - start)
                 print('Done Decode')
@@ -46,34 +60,17 @@ def exe(callback):
                     c = c + str(x.data)
                     i = i + 1
                 if i != 0:
-                    print("Decoded Aadhar card\n")
+                    print("Decoded Aadhar card")
                     break
+
             if run:
-                # print(c)
-                # Extracting Aadhar number from string
                 o = "uid="
                 f = c.index(o, 0, len(c))
                 for i in range(f + 5, f + 17):
                     id = id + c[i]
                 print("Decoded Aadhar number: ", end='')
                 print(id)  # id has the aadhar number
-
-            while run:
-                GPIO.setmode(GPIO.BCM)
-                GPIO.setup(12, GPIO.OUT)
-                GPIO.output(12, GPIO.HIGH)
-                GPIO.setup(10, GPIO.IN, GPIO.PUD_DOWN)
-                GPIO.setup(11, GPIO.IN, GPIO.PUD_DOWN)
-                if GPIO.input(10) == 0:
-                    msg = "POLICE"
-                    callback(id, msg)
-                    break
-                elif GPIO.input(11) == 0:
-                    msg = "AMBULANCE"
-                    callback(id, msg)
-                    break
-                time.sleep(0)
-            print(msg)
+                callback(id, msg)
         except:
             pass
     print('Ending emergency service')
