@@ -38,7 +38,7 @@ def exe(callback):
                     msg = "FIRE"
                     break
                 time.sleep(0)
-
+            print('Got from button: ' + msg)
             urlopen(cam_loc + '/ptz?zoom=5')
 
             while run:
