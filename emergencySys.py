@@ -7,6 +7,7 @@ import time
 import RPi.GPIO as GPIO
 
 run = True
+cam_loc = 'http://10.100.35.192:8080'
 
 
 def exe(callback):
@@ -16,8 +17,8 @@ def exe(callback):
     while run:
         try:
             # Extract from IP WEBCAM
-            urlopen('http://10.100.35.192:8080/ptz?zoom=5')
-            url = 'http://10.100.35.192:8080/photo.jpg'
+            urlopen(cam_loc + '/ptz?zoom=5')
+            url = cam_loc + '/photo.jpg'
             c = ""
             id = ""
             p = 0
@@ -25,17 +26,20 @@ def exe(callback):
             msg = ""
             name = ""
             while run:
-                # urlopen('http://10.100.35.192:8080/focus')
+                # urlopen(cam_loc + '/focus')
                 time.sleep(5)
-                print('IMG')
+                print('Asking IMG')
                 imgresp = urlopen(url)
                 imgnp = np.array(bytearray(imgresp.read()), dtype=np.uint8)
-                print(len(imgnp) if imgnp is not None else None)
+                print('Decoding IMG ' + str(len(imgnp) if imgnp is not None else None))
+                start = time.time()
                 img = cv2.imdecode(imgnp, -1)
                 cv2.imwrite('2.png', img)
                 # cv2.imshow('1', img)
                 # Decoding the Aadhar Qr code
                 image = decode(Image.open('2.png'))
+                print(time.time() - start)
+                print('Done Decode')
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
                 for x in image:
@@ -45,20 +49,14 @@ def exe(callback):
                     print("Decoded Aadhar card\n")
                     break
             if run:
-                print(c)
-
+                # print(c)
                 # Extracting Aadhar number from string
-
                 o = "uid="
-
                 f = c.index(o, 0, len(c))
-
                 for i in range(f + 5, f + 17):
                     id = id + c[i]
-
-                print("Decoded Aadhar number:")
+                print("Decoded Aadhar number: ", end='')
                 print(id)  # id has the aadhar number
-                print("\n")
 
             while run:
                 GPIO.setmode(GPIO.BCM)

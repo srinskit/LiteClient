@@ -8,5 +8,5 @@ setup(
     license='',
     author='srinag',
     author_email='srinagrao2007@gmail.com',
-    description=''
+    description='', install_requires=['PIL', 'pyzbar']
 )
