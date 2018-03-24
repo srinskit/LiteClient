@@ -28,20 +28,21 @@ def exe(callback):
             name = ""
             msg = ""
             while run:
-                if GPIO.input(10) == 0:
+                if GPIO.input(10) == 1:
                     msg = "POLICE"
                     break
-                elif GPIO.input(11) == 0:
+                elif GPIO.input(11) == 1:
                     msg = "AMBULANCE"
                     break
-                elif GPIO.input(12) == 0:
+                elif GPIO.input(12) == 1:
                     msg = "FIRE"
                     break
-                time.sleep(0)
+                time.sleep(.1)
             print('Got from button: ' + msg)
             urlopen(cam_loc + '/ptz?zoom=5')
-
-            while run:
+            scan_count = 0
+            while run and scan_count < 5:
+                scan_count += 1
                 urlopen(cam_loc + '/focus')
                 time.sleep(5)
                 print('Asking IMG')
