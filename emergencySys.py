@@ -43,10 +43,11 @@ def exe(callback):
                     msg = "FIRE"
                     break
                 time.sleep(.1)
-            GPIO.output(14, GPIO.HIGH)
-            print('Got from button: ' + msg)
-            urlopen(cam_loc + '/ptz?zoom=5')
-            scan_count = 0
+            if run:
+                GPIO.output(14, GPIO.HIGH)
+                print('Got from button: ' + msg)
+                urlopen(cam_loc + '/ptz?zoom=5')
+                scan_count = 0
             while run and scan_count < 5:
                 scan_count += 1
                 urlopen(cam_loc + '/focus')
