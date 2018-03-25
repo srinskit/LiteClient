@@ -14,8 +14,12 @@
         <img :src="url" alt="ADs" style="margin:auto;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
     </div>
     <script>
+        /*
         $.getJSON("server_config.json",(data)=>{
-            var URL = data.hs_ip;
+
+        });
+        */
+        var URL = data.hs_ip;
             console.log(URL);
             var HTTP = axios.create({
                 baseURL: 'http://10.100.34.185/',
@@ -55,7 +59,6 @@
                     },10000);
                 }
             })
-        });
     </script>
 </body>
 </html>
