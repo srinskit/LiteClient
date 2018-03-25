@@ -27,12 +27,14 @@
                     length:0,
                     url: ''
                 },
-                mounted(){
+                created(){
                     HTTP.get('upload/imgNo')
                     .then((res)=>{
+                        this.length = res.data.length;
                         this.url = URL+'upload/img'+i+'.png';
                         i++;
-                        i=i%length;
+                        i=i%this.length;
+                        console.log(i);
                     })
                     .catch(err=>{
                         console.log(err);
@@ -41,15 +43,15 @@
                     setInterval(()=>{
                         HTTP.get('upload/imgNo')
                             .then((res)=>{
-                                length = res.data.length;
-                                console.log(length);
+                                this.length = res.data.length;
+                                console.log(this.length);
                         })
                     },12000);
 
                     setInterval(()=>{
                         this.url = URL+'upload/img'+i+'.png';
                         i++;
-                        i=i%length;
+                        i=i%this.length;
                     },10000);
                 }
             })
