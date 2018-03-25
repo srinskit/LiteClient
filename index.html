@@ -10,55 +10,55 @@
     <script src="jsLib/3.js"></script>
 </head>
 <body class="width:100vw;height:100vh;position:relative;">
-    <div id="Vue" style="position:absolute;width:100%;height:100%;">
-        <img :src="url" alt="ADs" style="margin:auto;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
-    </div>
-    <script>
+<div id="Vue" style="position:absolute;width:100%;height:100%;">
+    <img :src="url" alt="ADs" style="margin:auto;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+</div>
+<script>
         /*
         $.getJSON("server_config.json",(data)=>{
-
+            var URL = data.hs_ip;
         });
         */
-        var URL = data.hs_ip;
-            console.log(URL);
-            var HTTP = axios.create({
-                baseURL: 'http://10.100.34.185/',
-            });
-            i = 0;
-            new Vue({
-                el:"#Vue",
-                data:{
-                    length:0,
-                    url: ''
-                },
-                created(){
+        var URL = 'http://10.100.34.185/';
+        var HTTP = axios.create({
+            baseURL: URL,
+        });
+        i = 0;
+        new Vue({
+            el:"#Vue",
+            data:{
+                length:0,
+                url: ''
+            },
+            mounted(){
+                HTTP.get('upload/imgNo')
+                .then((res)=>{
+                    this.length = res.data.length;
+                    this.url = URL +'upload/img'+i+'.png';
+                    i++;
+                    i=i%this.length;
+                })
+                .catch(err=>{
+                    console.log(err);
+                })
+
+                setInterval(()=>{
                     HTTP.get('upload/imgNo')
-                    .then((res)=>{
-                        this.length = res.data.length;
-                        this.url = URL+'upload/img'+i+'.png';
-                        i++;
-                        i=i%this.length;
-                        console.log(i);
+                        .then((res)=>{
+                            this.length = res.data.length;
+                            console.log(this.length);
                     })
-                    .catch(err=>{
-                        console.log(err);
-                    })
+                },6000);
 
-                    setInterval(()=>{
-                        HTTP.get('upload/imgNo')
-                            .then((res)=>{
-                                this.length = res.data.length;
-                                console.log(this.length);
-                        })
-                    },12000);
+                setInterval(()=>{
+                    this.url = URL+'upload/img'+i+'.png';
+                    console.log(this.url);
+                    i++;
+                    i=i%this.length;
+                },5000);
+            }
+        })
 
-                    setInterval(()=>{
-                        this.url = URL+'upload/img'+i+'.png';
-                        i++;
-                        i=i%this.length;
-                    },10000);
-                }
-            })
-    </script>
+</script>
 </body>
 </html>
