@@ -90,4 +90,6 @@ def exe(callback):
                 GPIO.output(15, GPIO.LOW)
         except:
             pass
+        GPIO.output(14, GPIO.LOW)
+        GPIO.output(15, GPIO.LOW)
     print('Ending emergency service')
