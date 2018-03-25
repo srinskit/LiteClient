@@ -50,7 +50,7 @@ def exe(callback):
             while run and scan_count < 5:
                 scan_count += 1
                 urlopen(cam_loc + '/focus')
-                for i in range(5):
+                for _ in range(5):
                     time.sleep(.5)
                     GPIO.output(14, GPIO.LOW)
                     time.sleep(.5)
