@@ -348,7 +348,7 @@ if __name__ == '__main__':
     serialThread = threading.Thread(target=serial_manager)
     serialThread.start()
     if devConfig['AD'] == 'true':
-        browser_process = subprocess.Popen(['chromium-browser', '--kiosk', 'index.html'], shell=False)
+        browser_process = subprocess.Popen(['export DISPLAY=:0; chromium-browser --kiosk index.html'], shell=True)
     if devConfig['ES'] == 'true':
         esThread = threading.Thread(target=foo)
         esThread.start()
