@@ -234,7 +234,6 @@ def serial_manager():
     resend_count, max_resend = 0, 0
     response_time, timeout, timeout_q = 0, 30, []
     sent_instruction, resend_instruction = None, None
-    sleep(3)
     while ProgramController.run:
         try:
             serialDev = Serial(devConfig['usb_port'], 38400, timeout=2)
@@ -245,7 +244,7 @@ def serial_manager():
                 print_success = False
             first_iteration = False
             print_failure = True
-            sleep(3)
+            sleep(2)
             while ProgramController.run:
                 try:
                     if serialDev.in_waiting >= 5:
