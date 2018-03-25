@@ -7,7 +7,7 @@ from multiprocessing import Queue
 import threading
 import signal
 import logging
-
+import subprocess
 import emergencySys as ES
 
 fromServer = Queue()
@@ -19,6 +19,7 @@ socketDev = None
 serialDev = None
 cid = None
 print_mode = True
+browser_process = None
 
 
 def print_debug(msg):
@@ -51,8 +52,12 @@ class ProgramController:
 
     @staticmethod
     def terminate(*_):
+        global browser_process
         print_debug('Got SIGTERM')
         ProgramController.run = False
+        if browser_process is not None:
+            browser_process.terminate()
+            browser_process = None
         ES.run = False
 
 
@@ -71,6 +76,7 @@ class TermClient(WebSocketClient):
         return dumps(msg)
 
     def process_msg(self, msg):
+        global browser_process
         typ = msg['type']
         if typ == 'auth':
             if msg['data']['state'] == 'pass':
@@ -83,6 +89,19 @@ class TermClient(WebSocketClient):
         elif typ == 'ping':
             print('Hello')
             self.send(TermClient.make_msg('ping', {}))
+        elif type == 'startAds':
+            if browser_process is not None:
+                try:
+                    browser_process.terminate()
+                except:
+                    pass
+            browser_process = subprocess.Popen(['chromium-browser', '--kiosk', 'index.html'], shell=False)
+        elif type == 'stopAds':
+            try:
+                browser_process.terminate()
+            except:
+                pass
+            browser_process = None
         else:
             fromServer.put(msg['bs'])
 
@@ -328,6 +347,8 @@ if __name__ == '__main__':
     socketThread.start()
     serialThread = threading.Thread(target=serial_manager)
     serialThread.start()
+    if devConfig['AD'] == 'true':
+        browser_process = subprocess.Popen(['chromium-browser', '--kiosk', 'index.html'], shell=False)
     if devConfig['ES'] == 'true':
         esThread = threading.Thread(target=foo)
         esThread.start()
