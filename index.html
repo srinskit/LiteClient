@@ -30,7 +30,6 @@
                 mounted(){
                     HTTP.get('upload/imgNo')
                     .then((res)=>{
-                        length = res.data.length;
                         this.url = URL+'upload/img'+i+'.png';
                         i++;
                         i=i%length;
