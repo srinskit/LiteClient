@@ -8,6 +8,7 @@ stty echo
 echo ''
 echo -ne 'cid: '; read dev[cid]
 echo -ne 'ES support: '; read dev[ES]
+echo -ne 'AD support: '; read dev[AD]
 dev[usb_port]="/dev/ttyACM0"
 dev[username]="term${dev[cid]}"
 #Todo Generate better password
