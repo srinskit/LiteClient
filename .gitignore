@@ -2,3 +2,5 @@
 *.log
 process.pid
 device_config*.json
+RPi/
+__pycache__

@@ -87,7 +87,6 @@ class TermClient(WebSocketClient):
         elif typ == 'bs':
             fromServer.put(msg['bs'])
         elif typ == 'ping':
-            print('Hello')
             self.send(TermClient.make_msg('ping', {}))
         elif type == 'startAds':
             if browser_process is not None:
@@ -169,7 +168,6 @@ def socket_manager():
     retry = 0
     socketDev = TermClient(serverConfig['ss_ip'])
     while ProgramController.run:
-        sleep(.1)
         if not socketDev.connected:
             while ProgramController.run:
                 try:
@@ -188,6 +186,7 @@ def socket_manager():
         else:
             while ProgramController.run and not toServer.empty():
                 socketDev.send(TermClient.make_msg('bs', {'bs': toServer.get()}))
+        sleep(.1)
     try:
         socketDev.close()
     except:
@@ -231,20 +230,20 @@ def match(req, res):
 
 def serial_manager():
     global serialDev
-    print_failure, print_success = True, True
+    print_failure, print_success, first_iteration = True, True, True
     resend_count, max_resend = 0, 0
     response_time, timeout, timeout_q = 0, 30, []
     sent_instruction, resend_instruction = None, None
+    sleep(3)
     while ProgramController.run:
         try:
-            # if term1:
-            #     serialDev = Serial('/dev/ttyACM0', 38400, timeout=2)
-            # else:
-            #     serialDev = Serial('/dev/ttyUSB0', 38400, timeout=2)
             serialDev = Serial(devConfig['usb_port'], 38400, timeout=2)
             if print_success:
                 print('Connected to serial dev')
+                if not first_iteration:
+                    toServer.put(h_to_n(d_to_h("01111" + "0" * 24)))
                 print_success = False
+            first_iteration = False
             print_failure = True
             sleep(3)
             while ProgramController.run:
@@ -309,13 +308,16 @@ def serial_manager():
                             resend_instruction = sent_instruction
                             sent_instruction = None
                 except:
+                    first_iteration = False
                     print(traceback.format_exc())
                     print_warn('Failed to send/receive to/from serial dev')
                     sleep(1)
                     break
         except:
+            first_iteration = False
             if print_failure:
                 print_warn('Not connected to serial dev')
+                toServer.put(h_to_n(d_to_h("00111" + "0" * 24)))
                 print_failure = False
             print_success = True
             sleep(1)
