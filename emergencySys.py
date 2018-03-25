@@ -18,6 +18,8 @@ def exe(callback):
     GPIO.setup(10, GPIO.IN, GPIO.PUD_DOWN)
     GPIO.setup(11, GPIO.IN, GPIO.PUD_DOWN)
     GPIO.setup(12, GPIO.IN, GPIO.PUD_DOWN)
+    GPIO.setup(14, GPIO.OUT)
+    GPIO.setup(15, GPIO.OUT)
     while run:
         try:
             url = cam_loc + '/photo.jpg'
@@ -39,6 +41,7 @@ def exe(callback):
                     break
                 time.sleep(.1)
             print('Got from button: ' + msg)
+            GPIO.output(14, GPIO.HIGH)
             urlopen(cam_loc + '/ptz?zoom=5')
             scan_count = 0
             while run and scan_count < 5:
@@ -64,7 +67,9 @@ def exe(callback):
                     print("Decoded Aadhar card")
                     break
             else:
+                GPIO.output(14, GPIO.LOW)
                 continue
+
             if run:
                 o = "uid="
                 f = c.index(o, 0, len(c))
@@ -73,6 +78,9 @@ def exe(callback):
                 print("Decoded Aadhar number: ", end='')
                 print(id)  # id has the aadhar number
                 callback(id, msg)
+                GPIO.output(15, GPIO.HIGH)
+                time.sleep(1)
+                GPIO.output(15, GPIO.LOW)
         except:
             pass
     print('Ending emergency service')
