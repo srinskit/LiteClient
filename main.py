@@ -168,6 +168,7 @@ def socket_manager():
     retry = 0
     socketDev = TermClient(serverConfig['ss_ip'])
     while ProgramController.run:
+        sleep(.1)
         if not socketDev.connected:
             while ProgramController.run:
                 try:
@@ -186,7 +187,6 @@ def socket_manager():
         else:
             while ProgramController.run and not toServer.empty():
                 socketDev.send(TermClient.make_msg('bs', {'bs': toServer.get()}))
-        sleep(.1)
     try:
         socketDev.close()
     except:
