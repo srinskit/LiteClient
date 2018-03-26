@@ -48,7 +48,7 @@ def exe(callback):
                 print('Got from button: ' + msg)
                 urlopen(cam_loc + '/ptz?zoom=5')
             scan_count = 0
-            while run and scan_count < 5:
+            while run and scan_count < 3:
                 scan_count += 1
                 urlopen(cam_loc + '/focus')
                 for _ in range(5):

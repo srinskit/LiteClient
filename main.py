@@ -246,6 +246,7 @@ def serial_manager():
             print_failure = True
             sleep(2)
             while ProgramController.run:
+                sleep(.1)
                 try:
                     if serialDev.in_waiting >= 5:
                         # If at least 5 bytes are in buffer
