@@ -222,6 +222,7 @@ def match(req, res):
         return False
     # If status
     req_op, res_op = req[:5], res[:5]
+    print(req_op, res_op)
     if req_op == '00010':
         return res_op == '00010'
     if req_op == '11000':

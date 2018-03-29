@@ -1,5 +1,4 @@
 from pyzbar.pyzbar import decode
-from PIL import Image
 from urllib.request import urlopen
 import numpy as np
 import cv2
@@ -64,8 +63,10 @@ def exe(cam_loc, callback):
                 print('Decoding IMG ' + str(len(imgnp) if imgnp is not None else None))
                 start = time.time()
                 img = cv2.imdecode(imgnp, -1)
-                cv2.imwrite('2.png', img)
-                image = decode(Image.open('2.png'))
+                h, w = img.shape[:2]
+                # cv2.imwrite('2.png', img)
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                image = decode((gray.tobytes(), w, h))
                 print(time.time() - start)
                 print('Done Decode')
                 if cv2.waitKey(1) & 0xFF == ord('q'):
