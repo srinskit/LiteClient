@@ -7,11 +7,13 @@ import time
 import RPi.GPIO as GPIO
 
 run = True
-cam_loc = 'http://10.100.35.192:8080'
 
 
-def exe(callback):
+def exe(cam_loc, callback):
     global run
+    if cam_loc is None or len(cam_loc) <= 0:
+        return
+    cam_loc = 'http://' + cam_loc
     print('Starting emergency service')
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)

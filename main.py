@@ -246,7 +246,7 @@ def serial_manager():
             print_failure = True
             sleep(2)
             while ProgramController.run:
-                sleep(0)
+                sleep(.1)
                 try:
                     if serialDev.in_waiting >= 5:
                         # If at least 5 bytes are in buffer
@@ -330,10 +330,6 @@ def emergency_callback(id, service):
     socketDev.send(TermClient.make_msg('emergency', {'id': id, 'service': service}))
 
 
-def foo():
-    ES.exe(emergency_callback)
-
-
 term1 = True
 if __name__ == '__main__':
     pc = ProgramController()
@@ -352,7 +348,8 @@ if __name__ == '__main__':
     if devConfig['AD'] == 'true':
         browser_process = subprocess.Popen(['export DISPLAY=:0; chromium-browser --kiosk index.html'], shell=True)
     if devConfig['ES'] == 'true':
-        esThread = threading.Thread(target=foo)
+        esThread = threading.Thread(target=ES.exe,
+                                    kwargs={'cam_loc': devConfig['cam_ip'], 'callback': emergency_callback})
         esThread.start()
         esThread.join()
     socketThread.join()
