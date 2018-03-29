@@ -217,18 +217,17 @@ def match(req, res):
     req, res = h_to_d(req), h_to_d(res)
     # Make 5th bit of req zero
     req = req[:4] + '0' + req[5:]
-    # Check id match
-    if req[5:5 + 10] != res[5:5 + 10]:
-        return False
-    # If status
     req_op, res_op = req[:5], res[:5]
-    print(req_op, res_op)
-    if req_op == '00010':
-        return res_op == '00010'
     if req_op == '11000':
         return res_op == '11000'
     if req_op == '11100':
         return res_op == '11100'
+    # Check id match
+    if req[5:5 + 10] != res[5:5 + 10]:
+        return False
+    # If status
+    if req_op == '00010':
+        return res_op == '00010'
     # Else has to be exact
     return req == res
 
