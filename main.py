@@ -224,6 +224,10 @@ def match(req, res):
     req_op, res_op = req[:5], res[:5]
     if req_op == '00010':
         return res_op == '00010'
+    if req_op == '11000':
+        return res_op == '11000'
+    if req_op == '11100':
+        return res_op == '11100'
     # Else has to be exact
     return req == res
 
