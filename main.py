@@ -178,7 +178,7 @@ def socket_manager():
                 except:
                     retry = retry + 1
                     if retry == 1:
-                        fromServer.put(h_to_n(d_to_h('11111' + '0' * 24)))
+                        fromServer.put(h_to_n(d_to_h('11110' + '0' * 24)))
                     print_warn('Socket connection failed. Try : %d' % retry)
                     del socketDev
                     sleep(2)
@@ -268,7 +268,7 @@ def serial_manager():
                         elif match(sent_instruction, resp_instruction):
                             print_debug('Success     : ' + h_to_n(sent_instruction))
                             # It's match!
-                            if op_code == 8 or op_code == 96:
+                            if op_code == 8 or op_code == 96 or op_code == 112:
                                 toServer.put(h_to_n(resp_instruction))
                             sent_instruction = None
                             resend_instruction = None
