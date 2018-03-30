@@ -178,7 +178,7 @@ def socket_manager():
                 except:
                     retry = retry + 1
                     if retry == 1:
-                        fromServer.put(d_to_h('11111' + '0' * 24))
+                        fromServer.put(h_to_n(d_to_h('11111' + '0' * 24)))
                     print_warn('Socket connection failed. Try : %d' % retry)
                     del socketDev
                     sleep(2)
