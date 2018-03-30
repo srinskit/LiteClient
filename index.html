@@ -51,7 +51,7 @@
                 },2000);
 
                 setInterval(()=>{
-                    this.url = URL+'upload/img'+i+'.png';
+                    this.url = URL+'upload/img'+i+'.png?' + Math.random()*10000000000;
                     console.log(this.url);
                     i++;
                     i=i%this.length;
