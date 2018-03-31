@@ -236,7 +236,7 @@ def serial_manager():
     global serialDev
     print_failure, print_success, first_iteration = True, True, True
     resend_count, max_resend = 0, 0
-    response_time, timeout, timeout_q = 0, 30, []
+    response_time, timeout, timeout_q = 0, 15, []
     sent_instruction, resend_instruction = None, None
     while ProgramController.run:
         try:
@@ -305,8 +305,8 @@ def serial_manager():
                             sent_instruction = None
                         response_time = 0
                     elif sent_instruction is not None:
+                        sleep(.1)
                         response_time += .2
-                        sleep(.2)
                         if response_time >= timeout:
                             # timeout_q.append(sent_instruction)
                             resend_instruction = sent_instruction
